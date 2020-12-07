@@ -1,29 +1,40 @@
 import scrapy
 import os
+
+from scrapy import Request
+
 from crawler.items import ExampleItem
-from selenium import webdriver
+# from selenium import webdriver
 import time
 
 
 class ExampleSpider(scrapy.Spider):
     name = 'example'
     allowed_domains = ['www.finnair.com']
-    start_urls = ['https://www.finnair.com/cn/cn/information-services/flights/flightslist', ]
+    start_urls = ['https://api.finnair.com/c/flightapp/flight-core-proxy/flightlist', ]
     # http://shike.gaotie.cn/zhan.asp?l=0&zhan=%B1%B1%BE%A9
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
+        'X-API-Key': 'Dg4baijHYq9BLH7YR40Ki9CymRXRLAbBVT7exvzb'
+    }
 
-    def __init__(self):
-        self.browser = webdriver.Chrome(executable_path="F:/Environment/SeleniumWebDriver/chromedriver_win32/chromedriver.exe")
-
-    def __del__(self):
-        self.browser.close()
+    def start_requests(self):
+        return [Request(url=self.start_urls[0], callback=self.parse, headers=self.headers)]
+    # def __init__(self):
+    #     self.browser = webdriver.Chrome(executable_path="D:/chromedriver_win32/chromedriver.exe")
+    #     # D:/chromedriver_win32
+    #     # F:/Environment/SeleniumWebDriver/chromedriver_win32
+    #
+    # def __del__(self):
+    #     self.browser.close()
 
     def parse(self, response):
         # node_list = response.xpath('/html/body/div[2]/div/div/div[3]/div/div/div[3]/table/tr[2]')
         # print(response.xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/ta/tr[2]').extract())
-        print(response)
-        self.browser.get(response.url)
+        print(response.text)
+        # self.browser.get(response.url)
         time.sleep(15)
-        print(self.browser.page_source)
+        # print(self.browser.page_source.xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/ta/tr[2]'))
         # item = self.browser.find_element_by_xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/table/tbody/tr[2]')
         # print(item)
         # /html/body/div[2]/div/div/div[3]/div/div/div[3]/table/tr[2]
