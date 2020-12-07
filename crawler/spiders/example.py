@@ -5,14 +5,14 @@ from scrapy import Request
 
 from crawler.items import ExampleItem
 # from selenium import webdriver
-import time
+import json
 
 
 class ExampleSpider(scrapy.Spider):
     name = 'example'
     allowed_domains = ['www.finnair.com']
     start_urls = ['https://api.finnair.com/c/flightapp/flight-core-proxy/flightlist', ]
-    # http://shike.gaotie.cn/zhan.asp?l=0&zhan=%B1%B1%BE%A9
+    # https://www.finnair.com/cn/cn/information-services/flights/flightslist
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.112 Safari/537.36',
         'X-API-Key': 'Dg4baijHYq9BLH7YR40Ki9CymRXRLAbBVT7exvzb'
@@ -20,49 +20,56 @@ class ExampleSpider(scrapy.Spider):
 
     def start_requests(self):
         return [Request(url=self.start_urls[0], callback=self.parse, headers=self.headers)]
-    # def __init__(self):
-    #     self.browser = webdriver.Chrome(executable_path="D:/chromedriver_win32/chromedriver.exe")
-    #     # D:/chromedriver_win32
-    #     # F:/Environment/SeleniumWebDriver/chromedriver_win32
-    #
-    # def __del__(self):
-    #     self.browser.close()
 
     def parse(self, response):
-        # node_list = response.xpath('/html/body/div[2]/div/div/div[3]/div/div/div[3]/table/tr[2]')
-        # print(response.xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/ta/tr[2]').extract())
-        print(response.text)
-        # self.browser.get(response.url)
-        time.sleep(15)
-        # print(self.browser.page_source.xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/ta/tr[2]'))
-        # item = self.browser.find_element_by_xpath('/html/body/div[1]/div/div/div[3]/div/div/div[3]/table/tbody/tr[2]')
-        # print(item)
-        # /html/body/div[2]/div/div/div[3]/div/div/div[3]/table/tr[2]
-        # items = []
-        # for node in node_list:
-        #     item = ExampleItem()
-        #     # item['text'] = node.extract()
-        #     num = node.xpath('./td[1]/a/text()').extract()
-        #     start = node.xpath('./td[3]/a[1]/text()').extract()
-        #     end = node.xpath('./td[3]/a[2]/text()').extract()
-        #     start_time = node.xpath('./td[6]/text()').extract()
-        #     end_time = node.xpath('./td[4]/text()').extract()
-        #     length = node.xpath('./td[7]/text()').extract()
-        #     print(num)
-        #     if len(num):
-        #         item['车次'] = num[0]
-        #         # print(num[0])
-        #     if len(start):
-        #         item['始发站'] = start[0]
-        #     if len(end):
-        #         item['终点站'] = end[0]
-        #     if len(start_time):
-        #         item['开车时间'] = start_time[0]
-        #     if len(end_time):
-        #         item['到站时间'] = end_time[0]
-        #     if len(length):
-        #         item['全程_时间'] = length[0]
-        #         items.append(item)
-        # item['url'] = response.text
-        # return items
+
+        # print(response.text)
+        data = json.loads(response.body_as_unicode())
+        # print(data['last_updated'])
+        # print(data['flights'][0]['airline'])
+        items = []
+        # {
+        #     "id": "e7a1a3c0-8f6a-422f-b6c5-d75876043a1d",
+        #     "airline": "AY",
+        #     "flight_number": "AY1332",
+        #     "scheduled_departure_date": "07.12.2020",
+        #     "scheduled_departure_time": "10:20",
+        #     "origin_name": "London Heathrow Apt",
+        #     "destination_name": "Helsinki-Vantaa",
+        #     "departure_time": "10:22 (Departed)",
+        #     "arrival_time": "15:01 (Landed)",
+        #     "serviceType": "J",
+        #     "status": "ARR",
+        #     "registration": "OHLVI"
+        # }
+        # 航线 = scrapy.Field()
+        # 航班号 = scrapy.Field()
+        # 预定出发日期 = scrapy.Field()
+        # 预定出发时间 = scrapy.Field()
+        # 起点 = scrapy.Field()
+        # 终点 = scrapy.Field()
+        # 出发时间 = scrapy.Field()
+        # 到达时间 = scrapy.Field()
+        # 服务类型 = scrapy.Field()
+        # 状态 = scrapy.Field()
+        # 注册号 = scrapy.Field()
+        time_update = data['last_updated']
+        for flight in data['flights']:
+            item = ExampleItem()
+            item['更新时间'] = time_update
+            item['航线'] = flight['airline']
+            item['航班号'] = flight['flight_number']
+            item['预定出发日期'] = flight['scheduled_departure_date']
+            item['预定出发时间'] = flight['scheduled_departure_time']
+            item['起点'] = flight['origin_name']
+            item['终点'] = flight['destination_name']
+            item['出发时间'] = flight['departure_time']
+            item['到达时间'] = flight['arrival_time']
+            item['服务类型'] = flight['serviceType']
+            item['状态'] = flight['status']
+            item['注册号'] = flight['registration']
+            items.append(item)
+            yield item
+            # print(flight['id'])
+        return items
         pass
