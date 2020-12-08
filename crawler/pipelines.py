@@ -51,7 +51,7 @@ class CrawlerPipeline:
         filename = base_dir + '/items.json'
         # 去掉最后一行的逗号
         f = codecs.open(filename, 'rb+')
-        f.seek(-3, 2)
+        f.seek(-2, 2)
         f.truncate()
         f.close()
         # 添加]
